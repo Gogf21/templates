@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: PersistentVolumeClaim 
+metadata:
+  name: nfs-pvc-01
+  labels:
+    app.kubernetes.io/name: &name app-config
+    app.kubernetes.io/instance: &instance test
+    app.kubernetes.io/version: &version v0.0.1
+spec:
+  # ЧТО И У НАШЕГО PV ВЫСТРАВЛЯЕМ
+  accessModes:
+    - ReadWriteMany
+  resources:
+      requests:
+        storage: 500Mi
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: manual

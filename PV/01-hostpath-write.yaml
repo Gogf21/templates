@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hostpath-write-demo
+spec:
+  containers:
+    - name: main
+      image: busybox:1.37
+      command:
+        - sh
+        - -c
+      args:
+        - |
+          echo "Hello from pod $(POD_NAME)!" > /data/hello.txt
+          echo "Data written to /data/hello.txt"
+          echo "---"
+          sleep infinity
+      env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+      volumeMounts:
+        - name: host-data
+          mountPath: /data
+      resources:
+        requests:
+          memory: "32Mi"
+          cpu: "100m" 
+        limits:
+          memory: "64Mi"
+          cpu: "200m"
+  volumes:
+    - name: host-data
+      hostPath:
+        path: /tmp/k8s-book-data
+        type: DirectoryOrCreate
+  restartPolicy: Never  

@@ -1,0 +1,36 @@
+# ch5/manifests/07-pod-with-pvc.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-writer
+  labels:
+    app.kubernetes.io/name: app-writer
+    app.kubernetes.io/instance: test
+    app.kubernetes.io/version: v0.0.1
+spec:
+  volumes:
+    # Определяем том и указываем, что он должен использовать наш PVC.
+    - name: nfs-storage
+      persistentVolumeClaim:
+        claimName: nfs-pvc-01
+  containers:
+    - name: main
+      image: busybox:1.37
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          while true; do
+            echo "Log entry at $(date)" >> /data/app.log;
+            sleep 5;
+          done
+      volumeMounts:
+        # Монтируем том в файловую систему контейнера.
+        - name: nfs-storage
+          mountPath: /data
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "250m"
+        limits:
+          memory: "128Mi"
+          cpu: "500m"

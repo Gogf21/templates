@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: myjob
+  labels:
+    app.kubernetes.io/name: myjob
+    app.kubernetes.io/version: v0.0.1
+spec:
+  ttlSecondsAfterFinished: 100 # ДЖОБ УМИРАЕТ ПОСЛЕ УСПЕШНОГО ВЫПОЛНЕНИЯ ДЖОБА
+  # selector
+  #   matchLabels:
+  template:
+    #metadata:
+    #   labels:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: test-job
+          image: busybox:1.28
+          command:
+            - 'sh'
+            - '-c'
+            - 'echo "Test job running"... && sleep 10 && exit 0'
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "250m"

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  TEST_DATABASE_HOST: "postgresql.example.com"
+  TEST_DATABASE_POST: "5432"
+  TEST_APP_ENV: "production"
+  TEST_LOG_LEVEL: "info"

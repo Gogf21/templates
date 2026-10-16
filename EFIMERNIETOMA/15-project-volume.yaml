@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config 
+data:
+  app.properties: |
+    log_level=INFO
+    feature_flags=new-ui,dark-mode
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-credentials
+type: Opaque
+stringData:
+  username: "admin"
+  password: "SuperSecretPassword123"
+
+---
+
+apiVersion: v1
+kind: Pod 
+metadata:
+  name: projected-volume-demo 
+  labels:
+    app.kubernetes.io/name: &name projected-demo
+    app.kubernetes.io/instance: &instance test-st
+    app.kubernetes.io/version: &version v0.0.1
+spec:
+  volumes:
+    - name: all-in-one-volume
+      projected:
+          sources:
+            # Источник 1: Downward API для метаданных пода
+            - downwardAPI:
+                items:
+                  - path: "pod_name"
+                    fieldRef:
+                      fieldPath: metadata.name 
+                  - path: "pod_namespace"
+                    fieldRef:
+                      fieldPath: metadata.namespace
+            # ВТОРОЙ ИСТОЧНИК Config map для конф приложения
+            - configMap:
+                name: app-config # Имя ConfigMap
+                items:
+                  - key: app.properties
+                    path: app.properties
+            # Источник 3: Secret для учетных данных
+            - secret:
+                name: db-credentials # Имя secret
+                items:
+                  - key: username
+                    path: username
+                  - key: password
+                    path: password
+  containers:
+    - name: main-container
+      image: busybox:1.37
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          echo "--- Reading projected data ---";
+          echo "[+] Pod Info:";
+          cat /etc/pod-data/pod_name;
+          echo "";
+          cat /etc/pod-data/pod_namespace;
+          echo "";
+          echo "[+] App Config:";
+          cat /etc/pod-data/app.properties;
+          echo "[+] DB Credentials:";
+          echo "Username: $(cat /etc/pod-data/username)";
+          echo "Password: $(cat /etc/pod-data/password)";
+          echo "--- Done ---";
+          sleep infinity;
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "250m"
+        limits:
+          memory: "128Mi"
+          cpu: "500m"
+      volumeMounts:
+        - name: all-in-one-volume
+          mountPath: /etc/pod-data
+          readOnly: true   # Рекомендуется для projected томов
+  restartPolicy: Never
